@@ -3,13 +3,14 @@
 import urllib2
 import math
 from bs4 import BeautifulSoup
+import time
 
 RECIPE_PER_LIST = 10
+SLEEP_TIME_SEC = 0.5
 
 def get_tsukurepo_count_from_recipe(url_text):
     opener = urllib2.build_opener()
     opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
-    #html = opener.open("https://cookpad.com/recipe/1069312")
     html = opener.open(url_text)
     soup = BeautifulSoup(html, "html.parser")
     tsukurepo_count = soup.find("span", attrs={"class": "tsukurepo_count"})
@@ -53,31 +54,42 @@ def get_search_pages_urls(search_page_url):
     num_page = int(math.ceil(search_count / RECIPE_PER_LIST))+1
     search_page_url_base = search_page_url.split("?")[0]
     
-    for ii in range(num_page):
-        if ii == 0:
-            result_url_list.append(search_page_url_base)
-        else:
-            result_url_list.append(search_page_url_base + "?page=" + str(ii))
+    for ii in range(1,num_page+1):
+        result_url_list.append(search_page_url_base + "?page=" + str(ii))
     return result_url_list
-    
-test = "https://cookpad.com/search/%E3%81%9F%E3%81%93%20%E3%82%A2%E3%83%92%E3%83%BC%E3%82%B8%E3%83%A7%20%E3%82%AD%E3%83%8E%E3%82%B3"
+
+print "検索する文字列を入力してください"
+input_word = raw_input(">>>  ")
+input_word.replace("　", " ")
+
+#test = "https://cookpad.com/search/%E3%81%9F%E3%81%93%20%E3%82%A2%E3%83%92%E3%83%BC%E3%82%B8%E3%83%A7%20%E3%82%AD%E3%83%8E%E3%82%B3"
+
+test = "https://cookpad.com/search/" + input_word
+
+print test
 search_page_url_list = get_search_pages_urls(test)
 recipe_link_list = []
 
 for search_page_url in search_page_url_list:
+    print "getting recipe list from the following URL..."
+    print search_page_url
     recipe_list_for_page = get_recipe_list_from_search_page(search_page_url)
     print recipe_list_for_page
     recipe_link_list = recipe_link_list + recipe_list_for_page
-
-print len(recipe_link_list)
-
+    time.sleep(SLEEP_TIME_SEC)
+    
 result = {}
 for recipe_link in recipe_link_list:
     result[recipe_link] = get_tsukurepo_count_from_recipe("https://cookpad.com" + recipe_link)
+    time.sleep(SLEEP_TIME_SEC)
+    
 print result
 
-f = open("result.txt", "w")
-f.write(result)
+f = open("C:\\temp\\test\\result.csv", "w")
+
+for recipe_item in sorted(result, key = lambda x: result[x], reverse = True):
+    output_line = "{0},{1}\n".format("https://cookpad.com" + recipe_item, result[recipe_item])
+    f.write(output_line)
 f.close()
 
 #recipe_link_list = get_recipe_list_from_search_page(test)
