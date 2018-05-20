@@ -48,10 +48,10 @@ def get_search_pages_urls(search_page_url):
     soup = BeautifulSoup(search_html, "html.parser")
     search_count_div = soup.find("div", "count")
     #print(search_count_div.em.string)
-    search_count = int(search_count_div.em.string[:-1])
+    search_count = int(search_count_div.em.string[:-1].replace(",",""))
     print "found " + str(search_count) + "recipes..."
     result_url_list = []
-    num_page = int(math.ceil(search_count / RECIPE_PER_LIST))+1
+    num_page = int(math.ceil( search_count / RECIPE_PER_LIST))+1
     search_page_url_base = search_page_url.split("?")[0]
     
     for ii in range(1,num_page+1):
@@ -60,11 +60,10 @@ def get_search_pages_urls(search_page_url):
 
 print "検索する文字列を入力してください"
 input_word = raw_input(">>>  ")
-input_word.replace("　", " ")
 
 #test = "https://cookpad.com/search/%E3%81%9F%E3%81%93%20%E3%82%A2%E3%83%92%E3%83%BC%E3%82%B8%E3%83%A7%20%E3%82%AD%E3%83%8E%E3%82%B3"
 
-test = "https://cookpad.com/search/" + input_word
+test = "https://cookpad.com/search/" + urllib2.quote(input_word)
 
 print test
 search_page_url_list = get_search_pages_urls(test)
@@ -84,8 +83,9 @@ for recipe_link in recipe_link_list:
     time.sleep(SLEEP_TIME_SEC)
     
 print result
-
-f = open("C:\\temp\\test\\result.csv", "w")
+input_word
+filename = "C:\\temp\\test\\result_" + input_word + ".csv"
+f = open(filename, "w")
 
 for recipe_item in sorted(result, key = lambda x: result[x], reverse = True):
     output_line = "{0},{1}\n".format("https://cookpad.com" + recipe_item, result[recipe_item])
